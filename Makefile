@@ -4,7 +4,7 @@ TARGET = fmp
 
 SRCDIR = ./src
 
-CFLAGS = -o $(TARGET) -lmpv -O3
+CFLAGS = -o $(TARGET) -lmpv -O3 -lncurses
 
 PREFIX = /usr
 

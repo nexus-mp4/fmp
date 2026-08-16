@@ -5,8 +5,10 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <ncurses.h>
 #define EFFECT "\x1b[30;44m"
 #define RESET "\x1b[0m"
+#define EFFECT_BG "\x1b[37;40m"
 
 void displayqueue(char *path) {
     DIR *dir = opendir(path);
@@ -39,6 +41,37 @@ char *cmdgen(char *path) {
     return ret;
 }
 
+void curseyou(char *file, mpv_handle *fmp) {
+    WINDOW *win = initscr();
+    cbreak();
+    noecho();
+    int key;
+    char *filename = strrchr(file, '/'); printw("Now Playing: %s ", filename);    
+    int max_y, max_x;
+    getmaxyx(win, max_y, max_x);
+    double ispeed = 1.0; double dspeed = 1.0;
+    mvprintw(max_y - 1, 0, "'Q': quit | '[': seek -5 | ']': seek 5 | 'k': decrease speed | 'l': increase speed");
+    while ((key = getch()) != 'q') {
+        switch(key) {
+            case ']':
+                mpv_command_string(fmp, "seek 5 relative+exact");
+            case '[':
+                mpv_command_string(fmp, "seek -5 relative+exact");
+            case 'l': {
+                ispeed += 0.1;
+                mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &ispeed);
+            }
+            case 'k': {
+                dspeed -= 0.1;
+                mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &dspeed);
+            }
+        }
+    wrefresh(win); refresh();
+    }
+    exit(0);
+}
+
+
 int play(char *file) {
     mpv_handle *fmp = mpv_create();
     mpv_initialize(fmp);
@@ -46,17 +79,17 @@ int play(char *file) {
     const char *command[] = {"loadfile", file};
     mpv_set_option_string(fmp, "video", "no");
     mpv_command(fmp, command);
-    while(1);
+    while(1) { 
+        curseyou(file, fmp);
+    }
 }
 
 int main(int argc, char **argv) {    
     check_file(argv[1]);
-    char *filename = strrchr(argv[1], '/');
-    //memmove(filename, filename + 1, strlen(filename));
     if (cmdgen(argv[1]) == "file") {
-        printf("Now playing: %s \n", filename);
+        play(argv[1]);
     } else if (cmdgen(argv[1]) == "dir") {
         displayqueue(argv[1]);
-    }   
-    play(argv[1]);
+        play(argv[1]);
+    }  
 }
