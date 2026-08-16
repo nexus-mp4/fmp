@@ -1,5 +1,5 @@
 # fmp
-Command Line Interface music player.
+Terminal User Interface music player.
 
 ## installation :
 ### Linux: 
