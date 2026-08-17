@@ -55,15 +55,19 @@ void curseyou(char *file, mpv_handle *fmp) {
         switch(key) {
             case ']':
                 mpv_command_string(fmp, "seek 5 relative+exact");
+                break;
             case '[':
                 mpv_command_string(fmp, "seek -5 relative+exact");
+                break;
             case 'l': {
                 ispeed += 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &ispeed);
+                break;
             }
             case 'k': {
                 dspeed -= 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &dspeed);
+                break;
             }
         }
     wrefresh(win); refresh();
