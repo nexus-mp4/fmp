@@ -4,14 +4,13 @@ TARGET = fmp
 
 SRCDIR = ./src
 
-CFLAGS = -o $(TARGET) -lmpv -O3 -lncurses
+CFLAGS = -o $(TARGET) -O3 -lmpv -lncurses -lavformat -lavcodec -lavutil -Wno-discarded-qualifiers
 
 PREFIX = /usr
 
 MACOS_PREFIX = /usr/local
 
 all: $(TARGET)
-
 
 install_mac:
 	$(CC) $(SRCDIR)/main.c $(CFLAGS)
