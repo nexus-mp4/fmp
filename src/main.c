@@ -64,39 +64,43 @@ char *cmdgen(char *path) {
 
 void curseyou(char *file, mpv_handle *fmp) {
     WINDOW *win = initscr();
-    cbreak();                                    // haha 67
+    cbreak();        
     noecho();
     int key;
     char **data = get_audio_metadata(file);
     if (data[1] && data[2]) {
-        printw("%s - %s\n", data[1], data[2]);
+        mvprintw(0, 2, "%s - %s\n", data[1], data[2]);
     } else {
-        printw("%s", data[1]);
+        mvprintw(0, 2, "%s", data[1]);
     }
     int max_y, max_x;
     getmaxyx(win, max_y, max_x);
     double speed = 1.0;
-    mvprintw(max_y - 1, 0, "'Q': quit | '[': seek -5 | ']': seek 5 | 'k': decrease speed | 'l': increase speed");
+    mvprintw(max_y - 1, 0, "'Q': quit | SPACEBAR: pause/play | '[': seek -5 | ']': seek 5 | 'k': decrease speed | 'l': increase speed");
     while ((key = getch()) != 'q') {
         switch(key) {
             case ']':
                 mpv_command_string(fmp, "seek 5 relative+exact");
-                mvprintw(2, 0, " +5s");
+                mvprintw(3, 0, " +5s");
                 break;
             case '[':
                 mpv_command_string(fmp, "seek -5 relative+exact");
-                mvprintw(2, 0, " -5s");
+                mvprintw(3, 0, " -5s");
                 break;
             case 'l': {
                 speed += 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
-                mvprintw(1, 0, "speed: %.1f", speed);
+                mvprintw(2, 0, "speed: %.1f", speed);
                 break;
             }
             case 'k': {
                 speed -= 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
-                mvprintw(1, 0, "speed: %.1f", speed);
+                mvprintw(2, 0, "speed: %.1f", speed);
+                break;
+            }
+            case ' ': {
+                mpv_command_string(fmp, "cycle pause");
                 break;
             }
         }
