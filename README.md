@@ -1,20 +1,25 @@
-# fmp
+i# fmp
 Terminal User Interface music player.
 
 ## installation :
-### Linux: 
+### build from source:
+dependencies:
+- mpv
+- ncurses
+- ffmpeg
+#### Linux:
 ```bash
 git clone https://github.com/nexus-mp4/fmp
 cd fmp
 sudo make install
 ```
-### MacOS:
+#### MacOS:
 ```bash
 git clone https://github.com/nexus-mp4/fmp
 cd fmp
 sudo make install_mac
 ```
-or execute the precompiled binary:
+### or execute the precompiled binary:
 ```bash
 git clone https://github.com/nexus-mp4/fmp
 ./bin/fmp
