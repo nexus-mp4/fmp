@@ -1,4 +1,4 @@
-i# fmp
+# fmp
 Terminal User Interface music player.
 
 ## installation :
