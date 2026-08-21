@@ -12,6 +12,7 @@
 #define RESET "\x1b[0m"
 #define EFFECT_BG "\x1b[37;40m"
 
+
 char** get_audio_metadata(const char* filepath) {
     AVFormatContext* ctx = NULL;
     char** result = malloc(3 * sizeof(char*));
@@ -69,21 +70,34 @@ void curseyou(char *file, mpv_handle *fmp) {
     int key;
     char **data = get_audio_metadata(file);
     if (data[1] && data[2]) {
-        mvprintw(0, 2, "%s - %s\n", data[1], data[2]);
+        mvprintw(0, 2, "%s - %s ", data[1], data[2]);
     } else {
-        mvprintw(0, 2, "%s", data[1]);
+        mvprintw(0, 2, "%s ", data[1]);
     }
+    
+    double timepos = mpv_get_property_double(mpv, "timepos");
+    int total_seconds = (int)timepos;
+    int hours = total_seconds / 3600;
+    int minutes = (total_seconds % 3600) / 60;
+    int seconds = total_seconds % 60;
+
+    if (hours > 0) {
+        printw("%02d:%02d:%02d", hours, minutes, seconds);
+    } else {
+        printw("%02d:%02d", minutes, seconds);
+    }
+    
     int max_y, max_x;
     getmaxyx(win, max_y, max_x);
     double speed = 1.0;
     mvprintw(max_y - 1, 0, "'Q': quit | SPACEBAR: pause/play | '[': seek -5 | ']': seek 5 | 'k': decrease speed | 'l': increase speed");
     while ((key = getch()) != 'q') {
         switch(key) {
-            case ']':
+            case ']' || KEY_RIGHT:
                 mpv_command_string(fmp, "seek 5 relative+exact");
                 mvprintw(3, 0, " +5s");
                 break;
-            case '[':
+            case '[' || KEY_LEFT:
                 mpv_command_string(fmp, "seek -5 relative+exact");
                 mvprintw(3, 0, " -5s");
                 break;
