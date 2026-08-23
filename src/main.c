@@ -1,4 +1,5 @@
 #include <mpv/client.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,30 +75,18 @@ void curseyou(char *file, mpv_handle *fmp) {
     } else {
         mvprintw(0, 2, "%s ", data[1]);
     }
-    
-    double timepos = mpv_get_property_double(mpv, "timepos");
-    int total_seconds = (int)timepos;
-    int hours = total_seconds / 3600;
-    int minutes = (total_seconds % 3600) / 60;
-    int seconds = total_seconds % 60;
 
-    if (hours > 0) {
-        printw("%02d:%02d:%02d", hours, minutes, seconds);
-    } else {
-        printw("%02d:%02d", minutes, seconds);
-    }
-    
     int max_y, max_x;
     getmaxyx(win, max_y, max_x);
     double speed = 1.0;
     mvprintw(max_y - 1, 0, "'Q': quit | SPACEBAR: pause/play | '[': seek -5 | ']': seek 5 | 'k': decrease speed | 'l': increase speed");
     while ((key = getch()) != 'q') {
         switch(key) {
-            case ']' || KEY_RIGHT:
+            case ']':
                 mpv_command_string(fmp, "seek 5 relative+exact");
                 mvprintw(3, 0, " +5s");
                 break;
-            case '[' || KEY_LEFT:
+            case '[':
                 mpv_command_string(fmp, "seek -5 relative+exact");
                 mvprintw(3, 0, " -5s");
                 break;
@@ -129,7 +118,7 @@ int play(char *file) {
     mpv_handle *fmp = mpv_create();
     mpv_initialize(fmp);
     char *c = cmdgen(file);
-    const char *command[] = {"loadfile", file};
+    const char *command[] = {"loadfile", file, NULL};
     mpv_set_option_string(fmp, "video", "no");
     mpv_command(fmp, command);
     while(1) { 
