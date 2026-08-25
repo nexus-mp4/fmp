@@ -12,9 +12,11 @@
 #define EFFECT "\x1b[30;44m"
 #define RESET "\x1b[0m"
 #define EFFECT_BG "\x1b[37;40m"
+#include <stdio.h>
+#include <mpv/client.h>
 
 void spawnbox() {
-    WINDOW *win = newwin(9, 30, 13, 57); 
+    WINDOW *win = newwin(9, 30, 12, 50); 
     
     wborder(win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,
             ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER);
@@ -81,9 +83,8 @@ void curseyou(char *file, mpv_handle *fmp) {
     if (data[1] && data[2]) {
         mvprintw(0, 2, "%s - %s ", data[1], data[2]);
     } else {
-        mvprintw(0, 2, "%s ", data[1]);
+        mvprintw(0, 2, "%s ", data[0]);
     }
-
     int max_y, max_x;
     getmaxyx(win, max_y, max_x);
     double speed = 1.0;
@@ -92,22 +93,22 @@ void curseyou(char *file, mpv_handle *fmp) {
         switch(key) {
             case ']':
                 mpv_command_string(fmp, "seek 5 relative+exact");
-                mvprintw(3, 0, " +5s");
+                mvprintw(max_y -1, max_x -7, " +5s");
                 break;
             case '[':
                 mpv_command_string(fmp, "seek -5 relative+exact");
-                mvprintw(3, 0, " -5s");
+                mvprintw(max_y -1, max_x -7, " -5s");
                 break;
             case 'l': {
                 speed += 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
-                mvprintw(2, 0, "speed: %.1f", speed);
+                mvprintw(max_y -2, max_x -13, "speed: %.1f", speed);
                 break;
             }
             case 'k': {
                 speed -= 0.1;
                 mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
-                mvprintw(2, 0, "speed: %.1f", speed);
+                mvprintw(max_y -2, max_x -13, "speed: %.1f", speed);
                 break;
             }
             case ' ': {
@@ -127,7 +128,7 @@ void curseyou(char *file, mpv_handle *fmp) {
                mpv_command(fmp, cmd);
             }
         }
-    wrefresh(win); refresh();
+    wrefresh(win);
     }
     clear();
     exit(0);
@@ -142,6 +143,7 @@ int play(char *file) {
     mpv_command(fmp, command);
     while(1) { 
         curseyou(file, fmp);
+        mpv_wait_event(fmp, 0);
     }
 }
 
