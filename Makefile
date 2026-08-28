@@ -4,7 +4,7 @@ TARGET = fmp
 
 SRCDIR = ./src
 
-CFLAGS = -o $(TARGET) -O3 -lmpv -lncurses -lavformat -lavcodec -lavutil -Wno-discarded-qualifiers -std=c23
+CFLAGS = -o $(TARGET) -O3 -lmpv -lncurses -lavformat -lavcodec -lavutil -Wno-discarded-qualifiers
 
 PREFIX = /usr
 

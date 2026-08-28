@@ -29,7 +29,7 @@ char folk_getch() {
 }
 
 void usage(const char *prog) {
-    fprintf(stderr, "Usage: %s [-h] [-v] [-V initial_volume] <file>\n", prog);
+    fprintf(stderr, "Usage: %s [-h] [-n] [-v] <file>\n", prog);
     exit(1);
 }
 
@@ -232,7 +232,7 @@ int main(int argc, char **argv) {
                 usage(argv[0]);
                 break;
             case 'v':
-                printf("fmp v1.3.0");
+                printf("fmp v1.3.0\n");
                 break;
             case 'n':
                 tui = false;
