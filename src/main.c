@@ -1,3 +1,5 @@
+// boy this one sure had a lot of switch() statements
+#include <getopt.h>
 #include <mpv/client.h>
 #include <string.h>
 #include <unistd.h>
@@ -9,11 +11,27 @@
 #include <ncurses.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <termios.h>
 #define EFFECT "\x1b[30;44m"
 #define RESET "\x1b[0m"
 #define EFFECT_BG "\x1b[37;40m"
-#include <stdio.h>
-#include <mpv/client.h>
+
+char folk_getch() {
+    struct termios o, n;
+    tcgetattr(0, &o);
+    n = o;
+    n.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(0, TCSANOW, &n);
+    char c;
+    read(0, &c, 1);
+    tcsetattr(0, TCSANOW, &o);
+    return c;
+}
+
+void usage(const char *prog) {
+    fprintf(stderr, "Usage: %s [-h] [-v] [-V initial_volume] <file>\n", prog);
+    exit(1);
+}
 
 void spawnbox() {
     WINDOW *win = newwin(9, 30, 12, 50); 
@@ -134,20 +152,101 @@ void curseyou(char *file, mpv_handle *fmp) {
     exit(0);
 }
 
+void play_notui(char *file, mpv_handle *fmp) {
+    char **data = get_audio_metadata(file);
+    if (data[1] && data[2]) {
+        printf("%s - %s ", data[1], data[2]);
+    } else {
+        printf("%s ", data[0]);
+    }
+    fflush(stdout);
+    int ch;
+    double speed = 0.0;
+    while ((ch = folk_getch()) != 'q') {
+        switch(ch) {
+            case ']':
+                mpv_command_string(fmp, "seek 5 relative+exact");
+                printf(" +5s");
+                break;
+            case '[':
+                mpv_command_string(fmp, "seek -5 relative+exact");
+                printf(" -5s");
+                break;
+            case 'l': {
+                speed += 0.1;
+                mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
+                printf("speed: %.1f", speed);
+                break;
+            }
+            case 'k': {
+                speed -= 0.1;
+                mpv_set_property(fmp, "speed", MPV_FORMAT_DOUBLE, &speed);
+                printf("speed: %.1f", speed);
+                break;
+            }
+            case ' ': {
+                mpv_command_string(fmp, "cycle pause");
+                break;
+            }
+            case 'h': {
+                spawnbox(); 
+                break;
+            }
+            case '.': {
+                const char *cmd[] = {"playlist-next", NULL};
+                mpv_command(fmp, cmd);
+            }
+            case ',': {
+               const char *cmd[] = {"playlist-previous", NULL};
+               mpv_command(fmp, cmd);
+            } 
+        }
+    }
+    exit(0);
+}
 
-int play(char *file) {
+void play(char *file, bool tui) {
     mpv_handle *fmp = mpv_create();
     mpv_initialize(fmp);
     const char *command[] = {"loadfile", file, NULL};
     mpv_set_option_string(fmp, "video", "no");
     mpv_command(fmp, command);
-    while(1) { 
-        curseyou(file, fmp);
-        mpv_wait_event(fmp, 0);
+    if (tui == true) {
+        while(1) {
+            curseyou(file, fmp);
+            mpv_wait_event(fmp, 0);
+        }
+    } else if (tui == false) {
+        play_notui(file, fmp);
+        while(1);
     }
 }
 
 int main(int argc, char **argv) {    
-    check_file(argv[1]);
-    play(argv[1]);
+    int opt;
+    bool tui;
+    tui = true;
+    while ((opt = getopt(argc, argv, "nvh")) != -1) {
+        switch (opt) {
+            case 'h':
+                usage(argv[0]);
+                break;
+            case 'v':
+                printf("fmp v1.3.0");
+                break;
+            case 'n':
+                tui = false;
+                break;   
+            default:    
+                usage(argv[0]);
+        }
+    }
+
+    char *file = argv[optind];
+    if (!file) {
+        fprintf(stderr, "No file provided.\n");
+        exit(1);
+    }
+    check_file(file);  
+    play(file, tui);
 }
